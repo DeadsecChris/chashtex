@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ETF-Sparplan-Rechner</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --card: #0f172a;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #334155;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.08), transparent 20%),
+        radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.07), transparent 18%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 28px auto;
+      padding: 0 16px 28px;
+    }
+
+    .header {
+      background: linear-gradient(180deg, rgba(17, 24, 39, 0.95), rgba(15, 23, 42, 0.95));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      font-weight: 700;
+    }
+
+    .header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 900px;
+      line-height: 1.5;
+    }
+
+    .notice {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      background: var(--accent-soft);
+      color: #dbeafe;
+      font-size: 13px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .form-title {
+      margin: 0 0 4px;
+      font-size: 22px;
+    }
+
+    .form-subtitle {
+      margin: 0 0 18px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .section-label {
+      margin: 18px 0 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #cbd5e1;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 14px;
+      transition: 0.2s ease;
+    }
+
+    .field input::placeholder {
+      color: #64748b;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.16);
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .radio-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .radio-pill input {
+      margin: 0;
+      width: auto;
+      accent-color: var(--accent);
+    }
+
+    .hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .info-box {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid var(--border);
+    }
+
+    .info-box strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .info-box p {
+      margin: 4px 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.98;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #06121d;
+      border-color: var(--accent);
+    }
+
+    .right-col {
+      display: grid;
+      gap: 18px;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .kpi {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .kpi-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .chart-card .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .chart-card h2 {
+      margin: 0 0 4px;
+      font-size: 20px;
+    }
+
+    .chart-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .chart-meta {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .chart-wrap {
+      background: rgba(17, 24, 39, 0.75);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .progress-block {
+      margin: 14px 0;
+    }
+
+    .progress-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 14px;
+      margin-bottom: 7px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: #1e293b;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+
+    .fill-paid {
+      width: 70%;
+      background: var(--accent);
+    }
+
+    .fill-earnings {
+      width: 30%;
+      background: var(--success);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      font-size: 13px;
+    }
+
+    thead {
+      background: rgba(30, 41, 59, 0.95);
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    td.num,
+    th.num {
+      text-align: right;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.12);
+      color: #bbf7d0;
+      font-size: 12px;
+      border: 1px solid rgba(34, 197, 94, 0.18);
+      margin-top: 10px;
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .kpis {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .kpis,
+      .row-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-card .top,
+      .btn-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>ETF-Sparplan-Rechner</h1>
+      <p>
+        Mit diesem Rechner lässt sich abschätzen, wie sich regelmäßiges Sparen in einen ETF
+        über mehrere Jahre entwickeln kann. Grundlage sind Einkommen, Ausgaben, gewünschtes
+        Sparniveau, Laufzeit und die Daten des ausgewählten ETFs.
+      </p>
+      <div class="notice">
+        Die Anwendung dient nur zur Berechnung und Simulation. Es werden keine ETFs gekauft oder verkauft.
+      </div>
+    </div>
+
+    <div class="layout">
+      <!-- LINKS -->
+      <div class="card">
+        <div class="card-body">
+          <h2 class="form-title">Eingaben</h2>
+          <p class="form-subtitle">
+            Tragt eure Monatswerte ein. Der Rechner ermittelt daraus den frei verfügbaren Betrag
+            und berechnet passend zum gewählten Sparniveau automatisch die monatliche Sparrate.
+          </p>
+
+          <form method="POST" action="/berechnen">
+            <div class="section-label">Monatliche Basisdaten</div>
+
+            <div class="field">
+              <label for="net_salary">Nettoeinkommen pro Monat (€)</label>
+              <input type="number" step="0.01" min="0" id="net_salary" name="net_salary" placeholder="z. B. 2200" required />
+            </div>
+
+            <div class="field">
+              <label for="monthly_expenses">Regelmäßige Ausgaben pro Monat (€)</label>
+              <input type="number" step="0.01" min="0" id="monthly_expenses" name="monthly_expenses" placeholder="z. B. 1450" required />
+            </div>
+
+            <div class="field">
+              <label for="saving_level">Gewünschte Sparrate</label>
+              <select id="saving_level" name="saving_level" required>
+                <option value="">Bitte auswählen</option>
+                <option value="0.85">Sehr hoch</option>
+                <option value="0.65">Hoch</option>
+                <option value="0.45" selected>Mittel</option>
+                <option value="0.25">Niedrig</option>
+              </select>
+              <div class="hint">
+                Das Programm nutzt je nach Auswahl einen festen Anteil des frei verfügbaren Betrags.
+              </div>
+            </div>
+
+            <div class="info-box">
+              <strong>Automatisch berechnete Sparrate</strong>
+              <p>Frei verfügbar: <span id="available-budget">750 €</span></p>
+              <p>Monatliche Sparrate: <span id="calculated-monthly-rate">338 €</span></p>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section-label">ETF und Laufzeit</div>
+
+            <div class="field">
+              <label for="etf_id">ETF auswählen</label>
+              <select id="etf_id" name="etf_id" required>
+                <option value="">Bitte auswählen</option>
+                <option value="1" data-return="8.0" data-ter="0.20">iShares Core MSCI World UCITS ETF</option>
+                <option value="2" data-return="8.5" data-ter="0.07">iShares Core S&amp;P 500 UCITS ETF</option>
+                <option value="3" data-return="7.2" data-ter="0.18">iShares Core MSCI EM IMI UCITS ETF</option>
+
+                <!-- Später mit Flask/Jinja:
+                {% for etf in etfs %}
+                  <option
+                    value="{{ etf.id }}"
+                    data-return="{{ etf.avg_return }}"
+                    data-ter="{{ etf.ter }}">
+                    {{ etf.name }}
+                  </option>
+                {% endfor %}
+                -->
+              </select>
+              <div class="hint">
+                Name, angenommene durchschnittliche Rendite und mögliche Kosten kommen aus der Datenbank.
+              </div>
+            </div>
+
+            <div class="row-2">
+              <div class="field">
+                <label for="years">Laufzeit (Jahre)</label>
+                <input type="number" min="1" max="60" id="years" name="years" value="10" required />
+              </div>
+
+              <div class="field">
+                <label for="initial_investment">Startbetrag / Einmalanlage (€)</label>
+                <input type="number" step="0.01" min="0" id="initial_investment" name="initial_investment" value="1000" />
+              </div>
+            </div>
+
+            <div class="info-box">
+              <strong>ETF-Infos</strong>
+              <p>Angenommene Rendite p. a.: <span id="etf-return">8,0 %</span></p>
+              <p>Kostenquote (TER): <span id="etf-ter">0,20 %</span></p>
+            </div>
+
+            <div class="btn-row">
+              <button type="submit" class="btn btn-primary">Sparplan berechnen</button>
+              <button type="submit" class="btn" formaction="/speichern">Berechnen und speichern</button>
+            </div>
+
+            <div class="badge">Fokus: reiner ETF-Sparplan-Rechner</div>
+          </form>
+        </div>
+      </div>
+
+      <!-- RECHTS -->
+      <div class="right-col">
+        <div class="kpis">
+          <div class="kpi">
+            <div class="kpi-label">Frei verfügbar / Monat</div>
+            <div class="kpi-value" id="kpi-free-budget">{{frei_verfügbar_ergebnis}}</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Monatliche Sparrate</div>
+            <div class="kpi-value" id="kpi-monthly-rate">338 €</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Geschätztes Endkapital</div>
+            <div class="kpi-value" id="kpi-final-value">59.990 €</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Möglicher Gewinn</div>
+            <div class="kpi-value" id="kpi-profit">18.430 €</div>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-body">
+            <div class="top">
+              <div>
+                <h2>Entwicklung des Kapitals</h2>
+                <p>
+                  Vergleich zwischen eingezahlter Gesamtsumme und geschätztem Kapitalverlauf
+                  auf Grundlage der gewählten ETF-Daten.
+                </p>
+              </div>
+              <div class="chart-meta">Monatliche Sparrate · Beispielsimulation</div>
+            </div>
+
+            <div class="chart-wrap">
+              <canvas id="capitalChart" height="110"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-grid">
+          <div class="card">
+            <div class="card-body">
+              <h2 style="margin:0 0 4px; font-size:20px;">Zusammensetzung des Endkapitals</h2>
+              <p class="muted" style="margin:0 0 14px;">
+                Übersicht über Einzahlungen und den rechnerischen Gewinn
+              </p>
+
+              <div class="progress-block">
+                <div class="progress-head">
+                  <span>Einzahlungen</span>
+                  <strong id="paid-in-value">41.560 €</strong>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill fill-paid" id="fill-paid"></div>
+                </div>
+              </div>
+
+              <div class="progress-block">
+                <div class="progress-head">
+                  <span>Gewinn</span>
+                  <strong id="earnings-value">18.430 €</strong>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill fill-earnings" id="fill-earnings"></div>
+                </div>
+              </div>
+
+              <div class="chart-wrap" style="margin-top:14px;">
+                <canvas id="compositionChart" height="120"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <h2 style="margin:0 0 4px; font-size:20px;">Gespeicherte Simulationen</h2>
+              <p class="muted" style="margin:0 0 14px;">
+                Hier erscheinen später nur gespeicherte Berechnungen aus der Datenbank
+              </p>
+
+              <table>
+                <thead>
+                  <tr>
+                    <th>Datum</th>
+                    <th>ETF</th>
+                    <th class="num">Sparrate</th>
+                    <th class="num">Endkapital</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>25.02.2026</td>
+                    <td>MSCI World</td>
+                    <td class="num">338 €</td>
+                    <td class="num"><strong>59.990 €</strong></td>
+                  </tr>
+                  <tr>
+                    <td>24.02.2026</td>
+                    <td>S&amp;P 500</td>
+                    <td class="num">290 €</td>
+                    <td class="num"><strong>54.300 €</strong></td>
+                  </tr>
+                  <tr>
+                    <td>23.02.2026</td>
+                    <td>EM IMI</td>
+                    <td class="num">210 €</td>
+                    <td class="num"><strong>38.700 €</strong></td>
+                  </tr>
+
+                  <!-- Später mit Flask/Jinja:
+                  {% for sim in simulations %}
+                  <tr>
+                    <td>{{ sim.created_at }}</td>
+                    <td>{{ sim.etf_name }}</td>
+                    <td class="num">{{ sim.monthly_rate }} €</td>
+                    <td class="num"><strong>{{
