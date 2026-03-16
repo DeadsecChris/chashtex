@@ -89,6 +89,17 @@ td:first-child, th:first-child{
 text-align:left;
 }
 
+.chart-image{
+width:100%;
+max-width:900px;
+display:block;
+margin:20px auto;
+border-radius:12px;
+background:white;
+padding:10px;
+box-sizing:border-box;
+}
+
 </style>
 
 </head>
@@ -149,7 +160,6 @@ text-align:left;
 
 </div>
 
-
 <div class="card">
 
 <h2>Ergebnisse</h2>
@@ -158,22 +168,22 @@ text-align:left;
 
 <div class="kpi">
 <h3>Frei verfügbar</h3>
-<p>{{frei_verfügbar_ergebnis}} €</p>
+<p>{{ frei_verfuegbar_ergebnis }} €</p>
 </div>
 
 <div class="kpi">
 <h3>Sparrate</h3>
-<p>{{monthly_rate}} €</p>
+<p>{{ monthly_rate }} €</p>
 </div>
 
 <div class="kpi">
 <h3>Endkapital</h3>
-<p>{{final_value}} €</p>
+<p>{{ final_value }} €</p>
 </div>
 
 <div class="kpi">
 <h3>Gewinn</h3>
-<p>{{profit}} €</p>
+<p>{{ profit }} €</p>
 </div>
 
 </div>
@@ -187,6 +197,10 @@ text-align:left;
 <div class="card">
 
 <h2>Kapitalentwicklung</h2>
+
+<img src="{{ url_for('static', filename='kapitalentwicklung.png') }}" 
+     alt="Kapitalentwicklung"
+     class="chart-image">
 
 <table>
 
@@ -203,9 +217,9 @@ text-align:left;
 {% for row in yearly_data %}
 
 <tr>
-<td>{{row.year}}</td>
-<td>{{row.invested}} €</td>
-<td>{{row.capital}} €</td>
+<td>{{ row.year }}</td>
+<td>{{ row.invested }} €</td>
+<td>{{ row.capital }} €</td>
 </tr>
 
 {% endfor %}

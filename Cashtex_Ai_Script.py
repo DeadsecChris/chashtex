@@ -1,4 +1,8 @@
 from flask import Flask, render_template, request
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import os
 
 app = Flask(__name__)
 
@@ -65,10 +69,31 @@ def index():
                 "capital": round(capital, 2)
             })
 
+
         frei_verfuegbar = round(free_budget, 2)
         monthly_rate = round(sparrate, 2)
         final_value = round(capital, 2)
         profit = round(final_value - invested, 2)
+
+    # Diagramm erstellen
+    jahre = [row["year"] for row in yearly_data]
+    einzahlungen = [row["invested"] for row in yearly_data]
+    kapitalwerte = [row["capital"] for row in yearly_data]
+
+    plt.figure(figsize=(8, 4))
+    plt.plot(jahre, einzahlungen, marker="o", label="Einzahlungen")
+    plt.plot(jahre, kapitalwerte, marker="o", label="Kapitalwert")
+    plt.xlabel("Jahre")
+    plt.ylabel("Euro")
+    plt.title("Kapitalentwicklung")
+    plt.legend()
+    plt.grid(True)
+
+    os.makedirs("static", exist_ok=True)
+    plt.savefig("static/kapitalentwicklung.png", bbox_inches="tight")
+    plt.close()
+
+# Ergebnisse an Template übergeben
 
     return render_template(
         "CashTex_AI_main.html",
