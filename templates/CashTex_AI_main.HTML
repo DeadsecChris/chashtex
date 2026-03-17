@@ -101,6 +101,11 @@ box-sizing:border-box;
 border:1px solid #334155;
 }
 
+ul{
+padding:0;
+list-style:none;
+}
+
 </style>
 
 </head>
@@ -113,6 +118,7 @@ border:1px solid #334155;
 
 <div class="grid">
 
+<!-- Eingaben -->
 <div class="card">
 
 <h2>Eingaben</h2>
@@ -120,40 +126,37 @@ border:1px solid #334155;
 <form method="POST" action="/berechnen">
 
 <label>Nettoeinkommen pro Monat (€)</label>
-<input type="number" name="net_salary" required>
+<input type="number" name="net_salary" required
+       value="{{ form_data.net_salary }}">
 
 <label>Monatliche Ausgaben (€)</label>
-<input type="number" name="monthly_expenses" required>
+<input type="number" name="monthly_expenses" required
+       value="{{ form_data.monthly_expenses }}">
 
 <label>Sparlevel</label>
 <select name="saving_level">
-
-<option value="wenig">Wenig (10%)</option>
-<option value="mittel">Mittel (20%)</option>
-<option value="hoch">Hoch (30%)</option>
-<option value="sehr_hoch">Sehr hoch (50%)</option>
-
+<option value="wenig" {% if form_data.saving_level == "wenig" %}selected{% endif %}>Wenig (10%)</option>
+<option value="mittel" {% if form_data.saving_level == "mittel" %}selected{% endif %}>Mittel (20%)</option>
+<option value="hoch" {% if form_data.saving_level == "hoch" %}selected{% endif %}>Hoch (30%)</option>
+<option value="sehr_hoch" {% if form_data.saving_level == "sehr_hoch" %}selected{% endif %}>Sehr hoch (50%)</option>
 </select>
 
 <label>ETF auswählen</label>
 <select name="etf_id">
-
-<option value="1">MSCI World (8%)</option>
-<option value="2">S&amp;P 500 (8.5%)</option>
-<option value="3">Emerging Markets (7.2%)</option>
-
+<option value="1" {% if form_data.etf_id == "1" %}selected{% endif %}>MSCI World (8%)</option>
+<option value="2" {% if form_data.etf_id == "2" %}selected{% endif %}>S&amp;P 500 (8.5%)</option>
+<option value="3" {% if form_data.etf_id == "3" %}selected{% endif %}>Emerging Markets (7.2%)</option>
 </select>
 
 <label>Laufzeit</label>
 <select name="years">
-
-<option value="10">10 Jahre</option>
-<option value="20">20 Jahre</option>
-
+<option value="10" {% if form_data.years == "10" %}selected{% endif %}>10 Jahre</option>
+<option value="20" {% if form_data.years == "20" %}selected{% endif %}>20 Jahre</option>
 </select>
 
 <label>Startkapital (€)</label>
-<input type="number" name="initial_investment" value="0">
+<input type="number" name="initial_investment"
+       value="{{ form_data.initial_investment }}">
 
 <button type="submit">Berechnen</button>
 
@@ -161,6 +164,7 @@ border:1px solid #334155;
 
 </div>
 
+<!-- Ergebnisse -->
 <div class="card">
 
 <h2>Ergebnisse</h2>
@@ -189,10 +193,30 @@ border:1px solid #334155;
 
 </div>
 
-</div>
+<!-- 🏢 Top Unternehmen -->
+{% if top_unternehmen %}
+
+<hr style="margin:20px 0;border:1px solid #333;">
+
+<h3>Top 5 Unternehmen im ETF</h3>
+
+<ul>
+
+{% for u in top_unternehmen %}
+<li style="padding:10px;background:#1f2937;margin-bottom:8px;border-radius:8px;">
+{{ u }}
+</li>
+{% endfor %}
+
+</ul>
+
+{% endif %}
 
 </div>
 
+</div>
+
+<!-- Diagramm + Tabelle -->
 {% if yearly_data %}
 
 <div class="card">
@@ -216,13 +240,11 @@ border:1px solid #334155;
 <tbody>
 
 {% for row in yearly_data %}
-
 <tr>
 <td>{{ row.year }}</td>
 <td>{{ row.invested }} €</td>
 <td>{{ row.capital }} €</td>
 </tr>
-
 {% endfor %}
 
 </tbody>
