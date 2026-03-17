@@ -76,21 +76,56 @@ def index():
         profit = round(final_value - invested, 2)
 
     # Diagramm erstellen
+# Diagramm erstellen
     jahre = [row["year"] for row in yearly_data]
     einzahlungen = [row["invested"] for row in yearly_data]
     kapitalwerte = [row["capital"] for row in yearly_data]
 
-    plt.figure(figsize=(8, 4))
-    plt.plot(jahre, einzahlungen, marker="o", label="Einzahlungen")
-    plt.plot(jahre, kapitalwerte, marker="o", label="Kapitalwert")
-    plt.xlabel("Jahre")
-    plt.ylabel("Euro")
-    plt.title("Kapitalentwicklung")
-    plt.legend()
-    plt.grid(True)
+    fig, ax = plt.subplots(figsize=(10, 5), facecolor="#111827")
+    ax.set_facecolor("#111827")
+
+    ax.plot(
+        jahre,
+        einzahlungen,
+        marker="o",
+        linewidth=2.5,
+        color="#94a3b8",
+        label="Einzahlungen"
+    )
+
+    ax.plot(
+        jahre,
+        kapitalwerte,
+        marker="o",
+        linewidth=2.5,
+        color="#38bdf8",
+        label="Kapitalwert"
+    )
+
+    ax.set_title("Kapitalentwicklung", color="white", fontsize=16, pad=15)
+    ax.set_xlabel("Jahre", color="white")
+    ax.set_ylabel("Euro", color="white")
+
+    ax.tick_params(axis="x", colors="white")
+    ax.tick_params(axis="y", colors="white")
+
+    for spine in ax.spines.values():
+        spine.set_color("#334155")
+
+    ax.grid(True, color="#334155", linestyle="--", linewidth=0.8, alpha=0.7)
+
+    legende = ax.legend(facecolor="#1f2937", edgecolor="#334155", fontsize=10)
+    for text in legende.get_texts():
+        text.set_color("white")
+
+    plt.tight_layout()
 
     os.makedirs("static", exist_ok=True)
-    plt.savefig("static/kapitalentwicklung.png", bbox_inches="tight")
+    plt.savefig(
+        "static/kapitalentwicklung.png",
+        bbox_inches="tight",
+        facecolor=fig.get_facecolor()
+    )
     plt.close()
 
 # Ergebnisse an Template übergeben
