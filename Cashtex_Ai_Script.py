@@ -11,7 +11,10 @@ DB = "database.db"
 ETFS = {
     "1": {"name": "MSCI World", "return": 8.0},
     "2": {"name": "S&P 500", "return": 8.5},
-    "3": {"name": "Emerging Markets", "return": 7.2}
+    "3": {"name": "Emerging Markets", "return": 7.2},
+    "4": {"name": "Core DAX EUR", "return": 8.4},
+    "5": {"name": "Global X Defense Tech", "return": 9.0},
+    "6": {"name": "XTrackers AI & Big Data", "return": 10.0}
 }
 
 SPARLEVEL = {
@@ -39,6 +42,10 @@ def get_top_unternehmen(etf_id):
     data = [row[0] for row in cur.fetchall()]
     conn.close()
     return data
+
+@app.get("/")
+def home():
+    return render_template("index.html")
 
 
 @app.route("/berechnen", methods=["GET", "POST"])

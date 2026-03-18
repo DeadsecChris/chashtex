@@ -1,123 +1,108 @@
 PRAGMA foreign_keys = ON;
 
--- =========================
--- Tabellen
--- =========================
-
-CREATE TABLE Sparfaktor (
-    SparfaktorID INTEGER PRIMARY KEY,
-    Bezeichnung  TEXT UNIQUE NOT NULL,
-    Prozent      REAL NOT NULL
-);
-
-CREATE TABLE Sparrate (
-    SparrateID   INTEGER PRIMARY KEY,
-    Ergebnis     REAL,
-    NettoEinkomm REAL,
-    Ausgaben     REAL,
-    SparfaktorID INTEGER NOT NULL,
-    FOREIGN KEY (SparfaktorID) REFERENCES Sparfaktor(SparfaktorID)
-);
+DROP TABLE IF EXISTS ETF_Unternehmen;
+DROP TABLE IF EXISTS Unternehmen;
+DROP TABLE IF EXISTS ETFs;
 
 CREATE TABLE ETFs (
-    ETFID        INTEGER PRIMARY KEY,
-    WKN          TEXT UNIQUE NOT NULL,
-    Bezeichnung  TEXT NOT NULL,
-    RenditePA    REAL
+    ETFID INTEGER PRIMARY KEY,
+    WKN TEXT UNIQUE NOT NULL,
+    Bezeichnung TEXT NOT NULL,
+    RenditePA REAL
 );
 
-CREATE TABLE Sparplan (
-    SparplanID INTEGER PRIMARY KEY,
-    Beschreibung TEXT,
-    SparrateID INTEGER,
-    ETFID INTEGER,
-    FOREIGN KEY (SparrateID) REFERENCES Sparrate(SparrateID),
-    FOREIGN KEY (ETFID) REFERENCES ETFs(ETFID)
-);
-
-CREATE TABLE Personen (
-    PersID          INTEGER PRIMARY KEY,
-    Vorname         TEXT NOT NULL,
-    Nachname        TEXT NOT NULL,
-    Geburtsdatum    TEXT NOT NULL,
-    Anlagevermoegen REAL,
-    Bankguthaben    REAL,
-    SparrateID      INTEGER,
-    SparplanID      INTEGER,
-    FOREIGN KEY (SparrateID) REFERENCES Sparrate(SparrateID),
-    FOREIGN KEY (SparplanID) REFERENCES Sparplan(SparplanID)
-);
-
--- Unternehmen
 CREATE TABLE Unternehmen (
     WKN TEXT PRIMARY KEY,
-    Bezeichnung TEXT NOT NULL,
-    Kurzbeschreibung TEXT
+    Bezeichnung TEXT NOT NULL
 );
 
--- NEU: Verknüpfung ETF ↔ Unternehmen
 CREATE TABLE ETF_Unternehmen (
     ETFID INTEGER,
     WKN TEXT,
-    PRIMARY KEY (ETFID, WKN),
-    FOREIGN KEY (ETFID) REFERENCES ETFs(ETFID),
-    FOREIGN KEY (WKN) REFERENCES Unternehmen(WKN)
+    PRIMARY KEY (ETFID, WKN)
 );
 
--- =========================
--- Stammdaten
--- =========================
-
-INSERT INTO Sparfaktor VALUES
-(1, 'Gering', 10),
-(2, 'Mittel', 20),
-(3, 'Hoch', 30),
-(4, 'Sehr Hoch', 50);
-
+-- ETFs
 INSERT INTO ETFs VALUES
 (1, 'A0RPWH', 'MSCI World', 8.0),
 (2, 'A0YEDG', 'S&P 500', 8.5),
-(3, 'A111X9', 'Emerging Markets', 7.2);
+(3, 'A111X9', 'Emerging Markets', 7.2),
+(4, '593393', 'iShares Core DAX', 8.4),
+(5, 'A2QPVU', 'Defense Tech', 9.0),
+(6, 'A2N6LC', 'AI & Big Data', 10.0);
 
-
--- =========================
--- Unternehmen (Beispiele)
--- =========================
-
+-- Unternehmen
 INSERT INTO Unternehmen VALUES
-('US0378331005', 'Apple', 'Technologieunternehmen'),
-('US5949181045', 'Microsoft', 'Software und Cloud'),
-('US02079K3059', 'Alphabet (Google)', 'Internet & Werbung'),
-('US30303M1027', 'Meta Platforms', 'Social Media'),
-('US0231351067', 'Amazon', 'E-Commerce & Cloud'),
-('US88160R1014', 'Tesla', 'Elektroautos'),
-('US4592001014', 'IBM', 'IT & Beratung'),
-('US7427181091', 'Procter & Gamble', 'Konsumgüter'),
-('US46625H1005', 'JPMorgan Chase', 'Bank'),
-('US0846707026', 'Berkshire Hathaway', 'Investmentholding');
 
--- =========================
--- ETF → Unternehmen Zuordnung
--- =========================
+('NVIDA', 'NVIDA'),
+('APPLE', 'Apple'),
+('MICROSOFT', 'Microsoft'),
+('AMAZON', 'Amazon'),
+('ALPHABET', 'Alphabet'),
 
--- MSCI World
-INSERT INTO ETF_Unternehmen VALUES (1, 'US0378331005'); -- Apple
-INSERT INTO ETF_Unternehmen VALUES (1, 'US5949181045'); -- Microsoft
-INSERT INTO ETF_Unternehmen VALUES (1, 'US02079K3059'); -- Alphabet
-INSERT INTO ETF_Unternehmen VALUES (1, 'US30303M1027'); -- Meta
-INSERT INTO ETF_Unternehmen VALUES (1, 'US0231351067'); -- Amazon
+('TSMC', 'Taiwan Semiconductor'),
+('TENCENT', 'Tencent'),
+('SAMSUNG', 'Samsung Electronics'),
+('ALIBABA', 'Alibaba'),
+('RELIANCE', 'Reliance Industries'),
 
--- S&P 500
-INSERT INTO ETF_Unternehmen VALUES (2, 'US0378331005'); -- Apple
-INSERT INTO ETF_Unternehmen VALUES (2, 'US5949181045'); -- Microsoft
-INSERT INTO ETF_Unternehmen VALUES (2, 'US88160R1014'); -- Tesla
-INSERT INTO ETF_Unternehmen VALUES (2, 'US0231351067'); -- Amazon
-INSERT INTO ETF_Unternehmen VALUES (2, 'US02079K3059'); -- Alphabet
+('SAP', 'SAP'),
+('ALLIANZ', 'Allianz'),
+('DTelekom', 'Deutsche Telekom'),
+('SIEMENS', 'Siemens'),
+('MERCEDES', 'Mercedes-Benz'),
 
--- Emerging Markets (Beispielhaft gemischt)
-INSERT INTO ETF_Unternehmen VALUES (3, 'US30303M1027'); -- Meta
-INSERT INTO ETF_Unternehmen VALUES (3, 'US4592001014'); -- IBM
-INSERT INTO ETF_Unternehmen VALUES (3, 'US7427181091'); -- P&G
-INSERT INTO ETF_Unternehmen VALUES (3, 'US46625H1005'); -- JPMorgan
-INSERT INTO ETF_Unternehmen VALUES (3, 'US0846707026'); -- Berkshire
+('BOEING', 'Boeing'),
+('LOCKHEED', 'Lockheed Martin'),
+('RAYTHEON', 'Raytheon'),
+('GD', 'General Dynamics'),
+('NORTHROP', 'Northrop Grumman'),
 
+('NVIDIA', 'Nvidia'),
+('ADOBE', 'Adobe'),
+('INTUIT', 'Intuit'),
+('NETFLIX', 'Netflix'),
+('SALESFORCE', 'Salesforce');
+
+--MSCI World
+INSERT INTO ETF_Unternehmen VALUES (1,'NVIDA');
+INSERT INTO ETF_Unternehmen VALUES (1,'APPLE');
+INSERT INTO ETF_Unternehmen VALUES (1,'MICROSOFT');
+INSERT INTO ETF_Unternehmen VALUES (1,'AMAZON');
+INSERT INTO ETF_Unternehmen VALUES (1,'ALPHABET');
+
+--S&P 500
+--MSCI World
+INSERT INTO ETF_Unternehmen VALUES (2,'NVIDA');
+INSERT INTO ETF_Unternehmen VALUES (2,'APPLE');
+INSERT INTO ETF_Unternehmen VALUES (2,'MICROSOFT');
+INSERT INTO ETF_Unternehmen VALUES (2,'AMAZON');
+INSERT INTO ETF_Unternehmen VALUES (2,'ALPHABET');
+
+-- Emerging Markets (KORRIGIERT ✅)
+INSERT INTO ETF_Unternehmen VALUES (3, 'TSMC');
+INSERT INTO ETF_Unternehmen VALUES (3, 'TENCENT');
+INSERT INTO ETF_Unternehmen VALUES (3, 'SAMSUNG');
+INSERT INTO ETF_Unternehmen VALUES (3, 'ALIBABA');
+INSERT INTO ETF_Unternehmen VALUES (3, 'RELIANCE');
+
+-- DAX
+INSERT INTO ETF_Unternehmen VALUES (4, 'SAP');
+INSERT INTO ETF_Unternehmen VALUES (4, 'ALLIANZ');
+INSERT INTO ETF_Unternehmen VALUES (4, 'DTelekom');
+INSERT INTO ETF_Unternehmen VALUES (4, 'SIEMENS');
+INSERT INTO ETF_Unternehmen VALUES (4, 'MERCEDES');
+
+-- Defense
+INSERT INTO ETF_Unternehmen VALUES (5, 'BOEING');
+INSERT INTO ETF_Unternehmen VALUES (5, 'LOCKHEED');
+INSERT INTO ETF_Unternehmen VALUES (5, 'RAYTHEON');
+INSERT INTO ETF_Unternehmen VALUES (5, 'GD');
+INSERT INTO ETF_Unternehmen VALUES (5, 'NORTHROP');
+
+-- AI
+INSERT INTO ETF_Unternehmen VALUES (6, 'NVIDIA');
+INSERT INTO ETF_Unternehmen VALUES (6, 'ADOBE');
+INSERT INTO ETF_Unternehmen VALUES (6, 'INTUIT');
+INSERT INTO ETF_Unternehmen VALUES (6, 'NETFLIX');
+INSERT INTO ETF_Unternehmen VALUES (6, 'SALESFORCE');

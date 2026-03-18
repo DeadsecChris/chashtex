@@ -143,9 +143,31 @@ list-style:none;
 
 <label>ETF auswählen</label>
 <select name="etf_id">
-<option value="1" {% if form_data.etf_id == "1" %}selected{% endif %}>MSCI World (8%)</option>
-<option value="2" {% if form_data.etf_id == "2" %}selected{% endif %}>S&amp;P 500 (8.5%)</option>
-<option value="3" {% if form_data.etf_id == "3" %}selected{% endif %}>Emerging Markets (7.2%)</option>
+
+<option value="1" {% if form_data.etf_id == "1" %}selected{% endif %}>
+MSCI World (8%)
+</option>
+
+<option value="2" {% if form_data.etf_id == "2" %}selected{% endif %}>
+S&P 500 (8.5%)
+</option>
+
+<option value="3" {% if form_data.etf_id == "3" %}selected{% endif %}>
+Emerging Markets (7.2%)
+</option>
+
+<option value="4" {% if form_data.etf_id == "4" %}selected{% endif %}>
+iShares Core DAX (8.4%)
+</option>
+
+<option value="5" {% if form_data.etf_id == "5" %}selected{% endif %}>
+Global X Defense Tech (9%)
+</option>
+
+<option value="6" {% if form_data.etf_id == "6" %}selected{% endif %}>
+Xtrackers AI & Big Data (10%)
+</option>
+
 </select>
 
 <label>Laufzeit</label>
