@@ -44,7 +44,7 @@ def get_top_unternehmen(etf_id):
 @app.route("/berechnen", methods=["GET", "POST"])
 def index():
 
-    # 🔥 Formwerte speichern (wichtig!)
+    #  Formwerte speichern
     form_data = {
         "net_salary": "",
         "monthly_expenses": "",
@@ -63,7 +63,7 @@ def index():
 
     if request.method == "POST":
 
-        # 🔥 Werte sichern
+        # Werte speichern
         form_data["net_salary"] = request.form["net_salary"]
         form_data["monthly_expenses"] = request.form["monthly_expenses"]
         form_data["saving_level"] = request.form["saving_level"]
@@ -71,6 +71,7 @@ def index():
         form_data["years"] = request.form["years"]
         form_data["initial_investment"] = request.form["initial_investment"]
 
+       # Berechnungen durchführen
         net_salary = float(form_data["net_salary"])
         monthly_expenses = float(form_data["monthly_expenses"])
         saving_level = form_data["saving_level"]
@@ -106,16 +107,57 @@ def index():
 
         top_unternehmen = get_top_unternehmen(etf_id)
 
+#Diagramm erstellen
     if yearly_data:
-        jahre = list(range(1, len(yearly_data)+1))
+        jahre = [row["year"] for row in yearly_data]
+        einzahlungen = [float(row["invested"].replace(".", "").replace(",", ".")) for row in yearly_data]
         kapitalwerte = [float(row["capital"].replace(".", "").replace(",", ".")) for row in yearly_data]
 
-        plt.figure()
-        plt.plot(jahre, kapitalwerte)
-        plt.grid(True)
+        fig, ax = plt.subplots(figsize=(10, 5), facecolor="#111827")
+        ax.set_facecolor("#111827")
+
+        ax.plot(
+            jahre,
+            einzahlungen,
+            marker="o",
+            linewidth=2.5,
+            color="#94a3b8",
+            label="Einzahlungen"
+        )
+
+        ax.plot(
+            jahre,
+            kapitalwerte,
+            marker="o",
+            linewidth=2.5,
+            color="#38bdf8",
+            label="Kapitalwert"
+        )
+
+        ax.set_title("Kapitalentwicklung", color="white", fontsize=16, pad=15)
+        ax.set_xlabel("Jahre", color="white")
+        ax.set_ylabel("Euro", color="white")
+
+        ax.tick_params(axis="x", colors="white")
+        ax.tick_params(axis="y", colors="white")
+
+        for spine in ax.spines.values():
+            spine.set_color("#334155")
+
+        ax.grid(True, color="#334155", linestyle="--", linewidth=0.8, alpha=0.7)
+
+        legende = ax.legend(facecolor="#1f2937", edgecolor="#334155", fontsize=10)
+        for text in legende.get_texts():
+            text.set_color("white")
+
+        plt.tight_layout()
 
         os.makedirs("static", exist_ok=True)
-        plt.savefig("static/kapitalentwicklung.png")
+        plt.savefig(
+            "static/kapitalentwicklung.png",
+            bbox_inches="tight",
+            facecolor=fig.get_facecolor()
+        )
         plt.close()
 
     return render_template(
@@ -126,7 +168,7 @@ def index():
         profit=profit,
         yearly_data=yearly_data,
         top_unternehmen=top_unternehmen,
-        form_data=form_data  # 🔥 NEU
+        form_data=form_data  
     )
 
 
