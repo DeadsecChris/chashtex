@@ -44,8 +44,8 @@ def get_top_unternehmen(etf_id):
     return data
 
 @app.get("/")
-def home():
-    return render_template("index.html")
+def startseite():
+    return render_template("Startseite.html")
 
 
 @app.route("/berechnen", methods=["GET", "POST"])
