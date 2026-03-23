@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -6,6 +6,8 @@ import sqlite3
 import os
 
 app = Flask(__name__)
+app.secret_key = "cashtex_geheim"
+
 DB = "database.db"
 
 ETFS = {
@@ -44,14 +46,11 @@ def get_top_unternehmen(etf_id):
     return data
 
 @app.get("/")
-def home():
-    return render_template("index.html")
-
+def startseite():
+    return render_template("Startseite.html")
 
 @app.route("/berechnen", methods=["GET", "POST"])
 def index():
-
-    #  Formwerte speichern
     form_data = {
         "net_salary": "",
         "monthly_expenses": "",
@@ -61,16 +60,18 @@ def index():
         "initial_investment": "0"
     }
 
-    frei_verfuegbar = ""
-    monthly_rate = ""
-    final_value = ""
-    profit = ""
-    yearly_data = []
-    top_unternehmen = []
+    if "form_data" in session:
+        form_data.update(session["form_data"])
+
+    frei_verfuegbar = session.get("frei_verfuegbar_ergebnis", "")
+    monthly_rate = session.get("monthly_rate", "")
+    final_value = session.get("final_value", "")
+    profit = session.get("profit", "")
+    yearly_data = session.get("yearly_data", [])
+    top_unternehmen = session.get("top_unternehmen", [])
+    error_message = session.get("error_message", "")
 
     if request.method == "POST":
-
-        # Werte speichern
         form_data["net_salary"] = request.form["net_salary"]
         form_data["monthly_expenses"] = request.form["monthly_expenses"]
         form_data["saving_level"] = request.form["saving_level"]
@@ -78,43 +79,72 @@ def index():
         form_data["years"] = request.form["years"]
         form_data["initial_investment"] = request.form["initial_investment"]
 
-       # Berechnungen durchführen
-        net_salary = float(form_data["net_salary"])
-        monthly_expenses = float(form_data["monthly_expenses"])
-        saving_level = form_data["saving_level"]
-        etf_id = form_data["etf_id"]
-        years = int(form_data["years"])
-        start_capital = float(form_data["initial_investment"])
+        yearly_data = []
+        top_unternehmen = []
+        frei_verfuegbar = ""
+        monthly_rate = ""
+        final_value = ""
+        profit = ""
+        error_message = ""
 
-        free_budget = net_salary - monthly_expenses
-        sparrate = free_budget * SPARLEVEL[saving_level]
+        try:
+            net_salary = float(form_data["net_salary"])
+            monthly_expenses = float(form_data["monthly_expenses"])
+            saving_level = form_data["saving_level"]
+            etf_id = form_data["etf_id"]
+            years = int(form_data["years"])
+            start_capital = float(form_data["initial_investment"])
 
-        etf = ETFS[etf_id]
-        monthly_return = (etf["return"] / 100) / 12
+            if net_salary < 0 or monthly_expenses < 0 or start_capital < 0:
+                error_message = "Bitte nur positive Werte eingeben."
 
-        capital = start_capital
-        invested = start_capital
+            elif monthly_expenses > net_salary:
+                error_message = "Die monatlichen Ausgaben dürfen nicht höher als das Nettoeinkommen sein."
 
-        for year in range(1, years + 1):
-            for month in range(12):
-                capital += sparrate
-                invested += sparrate
-                capital *= (1 + monthly_return)
+            else:
+                free_budget = net_salary - monthly_expenses
+                sparrate = free_budget * SPARLEVEL[saving_level]
 
-            yearly_data.append({
-                "year": year,
-                "invested": format_euro(invested),
-                "capital": format_euro(capital)
-            })
+                etf = ETFS[etf_id]
+                monthly_return = (etf["return"] / 100) / 12
 
-        frei_verfuegbar = format_euro(free_budget)
-        monthly_rate = format_euro(sparrate)
-        final_value = format_euro(capital)
-        profit = format_euro(capital - invested)
+                capital = start_capital
+                invested = start_capital
 
-        top_unternehmen = get_top_unternehmen(etf_id)
+                for year in range(1, years + 1):
+                    for month in range(12):
+                        capital += sparrate
+                        invested += sparrate
+                        capital *= (1 + monthly_return)
 
-#Diagramm erstellen
+                    yearly_data.append({
+                        "year": year,
+                        "invested": format_euro(invested),
+                        "capital": format_euro(capital)
+                    })
+
+                frei_verfuegbar = format_euro(free_budget)
+                monthly_rate = format_euro(sparrate)
+                final_value = format_euro(capital)
+                profit = format_euro(capital - invested)
+
+                try:
+                    top_unternehmen = get_top_unternehmen(etf_id)
+                except:
+                    top_unternehmen = []
+
+        except ValueError:
+            error_message = "Bitte gültige Zahlen eingeben."
+
+        session["yearly_data"] = yearly_data
+        session["form_data"] = form_data
+        session["frei_verfuegbar_ergebnis"] = frei_verfuegbar
+        session["monthly_rate"] = monthly_rate
+        session["final_value"] = final_value
+        session["profit"] = profit
+        session["top_unternehmen"] = top_unternehmen
+        session["error_message"] = error_message
+
     if yearly_data:
         jahre = [row["year"] for row in yearly_data]
         einzahlungen = [float(row["invested"].replace(".", "").replace(",", ".")) for row in yearly_data]
@@ -175,9 +205,14 @@ def index():
         profit=profit,
         yearly_data=yearly_data,
         top_unternehmen=top_unternehmen,
-        form_data=form_data  
+        form_data=form_data,
+        error_message=error_message
     )
 
+@app.route("/kapitalentwicklung")
+def kapitalentwicklung():
+    yearly_data = session.get("yearly_data", [])
+    return render_template("CashTex_Kapitalentwicklung.html", yearly_data=yearly_data)
 
 if __name__ == "__main__":
     app.run(debug=True)
