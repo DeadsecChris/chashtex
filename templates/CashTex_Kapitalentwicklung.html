@@ -86,9 +86,9 @@ button{
         <tbody>
             {% for row in yearly_data %}
             <tr>
-                <td>{{ row.year }}</td>
-                <td>{{ row.invested }} €</td>
-                <td>{{ row.capital }} €</td>
+                <td>{{ row["year"] }}</td>
+                <td>{{ row["invested"] }} €</td>
+                <td>{{ row["capital"] }} €</td>
             </tr>
             {% endfor %}
         </tbody>
