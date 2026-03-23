@@ -215,7 +215,7 @@ Xtrackers AI & Big Data (10%)
 
 </div>
 
-<!-- 🏢 Top Unternehmen -->
+<!-- Top Unternehmen -->
 {% if top_unternehmen %}
 
 <hr style="margin:20px 0;border:1px solid #333;">
@@ -238,43 +238,14 @@ Xtrackers AI & Big Data (10%)
 
 </div>
 
-<!-- Diagramm + Tabelle -->
+<!-- Separate Kapitalentwicklung -->
 {% if yearly_data %}
-
 <div class="card">
-
-<h2>Kapitalentwicklung</h2>
-
-<img src="{{ url_for('static', filename='kapitalentwicklung.png') }}" 
-     alt="Kapitalentwicklung"
-     class="chart-image">
-
-<table>
-
-<thead>
-<tr>
-<th>Jahr</th>
-<th>Einzahlungen</th>
-<th>Kapitalwert</th>
-</tr>
-</thead>
-
-<tbody>
-
-{% for row in yearly_data %}
-<tr>
-<td>{{ row.year }}</td>
-<td>{{ row.invested }} €</td>
-<td>{{ row.capital }} €</td>
-</tr>
-{% endfor %}
-
-</tbody>
-
-</table>
-
+    <h2>Kapitalentwicklung</h2>
+    <a href="/kapitalentwicklung">
+        <button type="button">Kapitalentwicklung anzeigen</button>
+    </a>
 </div>
-
 {% endif %}
 
 </div>

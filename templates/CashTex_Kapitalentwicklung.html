@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Kapitalentwicklung</title>
+<style>
+body{
+    font-family:Arial;
+    background:#0b1120;
+    color:white;
+    margin:0;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+    padding:30px;
+}
+
+.card{
+    background:#111827;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+th,td{
+    padding:10px;
+    border-bottom:1px solid #333;
+    text-align:right;
+}
+
+th{
+    background:#1f2937;
+}
+
+td:first-child, th:first-child{
+    text-align:left;
+}
+
+.chart-image{
+    width:100%;
+    max-width:900px;
+    display:block;
+    margin:20px auto;
+    border-radius:12px;
+    background:#111827;
+    border:1px solid #334155;
+}
+
+button{
+    padding:12px;
+    background:#38bdf8;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="card">
+    <h1>Kapitalentwicklung</h1>
+
+    <img src="{{ url_for('static', filename='kapitalentwicklung.png') }}"
+         alt="Kapitalentwicklung"
+         class="chart-image">
+
+    <table>
+        <thead>
+            <tr>
+                <th>Jahr</th>
+                <th>Einzahlungen</th>
+                <th>Kapitalwert</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in yearly_data %}
+            <tr>
+                <td>{{ row.year }}</td>
+                <td>{{ row.invested }} €</td>
+                <td>{{ row.capital }} €</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <br>
+    <a href="/berechnen">
+        <button type="button">Zurück zur Berechnung</button>
+    </a>
+</div>
+
+</div>
+
+</body>
+</html>
