@@ -181,7 +181,7 @@ def index():
 @app.route("/kapitalentwicklung")
 def kapitalentwicklung():
     yearly_data = session.get("yearly_data", [])
-    return render_template("kapitalentwicklung.html", yearly_data=yearly_data)
+    return render_template("CashTex_Kapitalentwicklung.html", yearly_data=yearly_data)
 
 if __name__ == "__main__":
     app.run(debug=True)
