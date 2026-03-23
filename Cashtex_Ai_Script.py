@@ -26,32 +26,9 @@ SPARLEVEL = {
     "sehr_hoch": 0.50
 }
 
-def format_euro(value):
-    return f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-def get_top_unternehmen(etf_id):
-    conn = sqlite3.connect(DB)
-    cur = conn.cursor()
-
-    cur.execute("""
-    SELECT U.Bezeichnung
-    FROM Unternehmen U
-    JOIN ETF_Unternehmen EU ON U.WKN = EU.WKN
-    WHERE EU.ETFID = ?
-    LIMIT 5
-    """, (etf_id,))
-
-    data = [row[0] for row in cur.fetchall()]
-    conn.close()
-    return data
-
-@app.get("/")
-def startseite():
-    return render_template("Startseite.html")
-
-@app.route("/berechnen", methods=["GET", "POST"])
-def index():
-    form_data = {
+def default_form_data():
+    return {
         "net_salary": "",
         "monthly_expenses": "",
         "saving_level": "mittel",
@@ -60,8 +37,96 @@ def index():
         "initial_investment": "0"
     }
 
-    if "form_data" in session:
-        form_data.update(session["form_data"])
+
+def format_euro(value):
+    return f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def get_top_unternehmen(etf_id):
+    try:
+        conn = sqlite3.connect(DB)
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT U.Bezeichnung
+            FROM Unternehmen U
+            JOIN ETF_Unternehmen EU ON U.WKN = EU.WKN
+            WHERE EU.ETFID = ?
+            LIMIT 5
+        """, (etf_id,))
+
+        data = [row[0] for row in cur.fetchall()]
+        conn.close()
+        return data
+    except Exception:
+        return []
+
+
+def save_chart(yearly_data):
+    if not yearly_data:
+        return
+
+    jahre = [row["year"] for row in yearly_data]
+    einzahlungen = [row["invested_value"] for row in yearly_data]
+    kapitalwerte = [row["capital_value"] for row in yearly_data]
+
+    fig, ax = plt.subplots(figsize=(10, 5), facecolor="#111827")
+    ax.set_facecolor("#111827")
+
+    ax.plot(
+        jahre,
+        einzahlungen,
+        marker="o",
+        linewidth=2.5,
+        color="#94a3b8",
+        label="Einzahlungen"
+    )
+
+    ax.plot(
+        jahre,
+        kapitalwerte,
+        marker="o",
+        linewidth=2.5,
+        color="#38bdf8",
+        label="Kapitalwert"
+    )
+
+    ax.set_title("Kapitalentwicklung", color="white", fontsize=16, pad=15)
+    ax.set_xlabel("Jahre", color="white")
+    ax.set_ylabel("Euro", color="white")
+
+    ax.tick_params(axis="x", colors="white")
+    ax.tick_params(axis="y", colors="white")
+
+    for spine in ax.spines.values():
+        spine.set_color("#334155")
+
+    ax.grid(True, color="#334155", linestyle="--", linewidth=0.8, alpha=0.7)
+
+    legend = ax.legend(facecolor="#1f2937", edgecolor="#334155", fontsize=10)
+    for text in legend.get_texts():
+        text.set_color("white")
+
+    plt.tight_layout()
+
+    os.makedirs("static", exist_ok=True)
+    plt.savefig(
+        "static/kapitalentwicklung.png",
+        bbox_inches="tight",
+        facecolor=fig.get_facecolor()
+    )
+    plt.close()
+
+
+@app.get("/")
+def startseite():
+    return render_template("Startseite.html")
+
+
+@app.route("/berechnen", methods=["GET", "POST"])
+def berechnen():
+    form_data = default_form_data()
+    form_data.update(session.get("form_data", {}))
 
     frei_verfuegbar = session.get("frei_verfuegbar_ergebnis", "")
     monthly_rate = session.get("monthly_rate", "")
@@ -72,35 +137,41 @@ def index():
     error_message = session.get("error_message", "")
 
     if request.method == "POST":
-        form_data["net_salary"] = request.form["net_salary"]
-        form_data["monthly_expenses"] = request.form["monthly_expenses"]
-        form_data["saving_level"] = request.form["saving_level"]
-        form_data["etf_id"] = request.form["etf_id"]
-        form_data["years"] = request.form["years"]
-        form_data["initial_investment"] = request.form["initial_investment"]
+        form_data = {
+            "net_salary": request.form.get("net_salary", "").strip(),
+            "monthly_expenses": request.form.get("monthly_expenses", "").strip(),
+            "saving_level": request.form.get("saving_level", "mittel"),
+            "etf_id": request.form.get("etf_id", "1"),
+            "years": request.form.get("years", "10").strip(),
+            "initial_investment": request.form.get("initial_investment", "0").strip()
+        }
 
-        yearly_data = []
-        top_unternehmen = []
         frei_verfuegbar = ""
         monthly_rate = ""
         final_value = ""
         profit = ""
+        yearly_data = []
+        top_unternehmen = []
         error_message = ""
 
         try:
             net_salary = float(form_data["net_salary"])
             monthly_expenses = float(form_data["monthly_expenses"])
-            saving_level = form_data["saving_level"]
-            etf_id = form_data["etf_id"]
             years = int(form_data["years"])
             start_capital = float(form_data["initial_investment"])
+            saving_level = form_data["saving_level"]
+            etf_id = form_data["etf_id"]
 
-            if net_salary < 0 or monthly_expenses < 0 or start_capital < 0:
+            if saving_level not in SPARLEVEL:
+                error_message = "Ungültiges Sparlevel."
+            elif etf_id not in ETFS:
+                error_message = "Ungültiger ETF."
+            elif net_salary < 0 or monthly_expenses < 0 or start_capital < 0 or years < 0:
                 error_message = "Bitte nur positive Werte eingeben."
-
+            elif years == 0:
+                error_message = "Die Anzahl der Jahre muss größer als 0 sein."
             elif monthly_expenses > net_salary:
                 error_message = "Die monatlichen Ausgaben dürfen nicht höher als das Nettoeinkommen sein."
-
             else:
                 free_budget = net_salary - monthly_expenses
                 sparrate = free_budget * SPARLEVEL[saving_level]
@@ -112,13 +183,15 @@ def index():
                 invested = start_capital
 
                 for year in range(1, years + 1):
-                    for month in range(12):
+                    for _ in range(12):
                         capital += sparrate
                         invested += sparrate
                         capital *= (1 + monthly_return)
 
                     yearly_data.append({
                         "year": year,
+                        "invested_value": round(invested, 2),
+                        "capital_value": round(capital, 2),
                         "invested": format_euro(invested),
                         "capital": format_euro(capital)
                     })
@@ -127,92 +200,44 @@ def index():
                 monthly_rate = format_euro(sparrate)
                 final_value = format_euro(capital)
                 profit = format_euro(capital - invested)
+                top_unternehmen = get_top_unternehmen(etf_id)
 
-                try:
-                    top_unternehmen = get_top_unternehmen(etf_id)
-                except:
-                    top_unternehmen = []
+                save_chart(yearly_data)
 
         except ValueError:
             error_message = "Bitte gültige Zahlen eingeben."
 
-        session["yearly_data"] = yearly_data
         session["form_data"] = form_data
         session["frei_verfuegbar_ergebnis"] = frei_verfuegbar
         session["monthly_rate"] = monthly_rate
         session["final_value"] = final_value
         session["profit"] = profit
+        session["yearly_data"] = yearly_data
         session["top_unternehmen"] = top_unternehmen
         session["error_message"] = error_message
 
-    if yearly_data:
-        jahre = [row["year"] for row in yearly_data]
-        einzahlungen = [float(row["invested"].replace(".", "").replace(",", ".")) for row in yearly_data]
-        kapitalwerte = [float(row["capital"].replace(".", "").replace(",", ".")) for row in yearly_data]
-
-        fig, ax = plt.subplots(figsize=(10, 5), facecolor="#111827")
-        ax.set_facecolor("#111827")
-
-        ax.plot(
-            jahre,
-            einzahlungen,
-            marker="o",
-            linewidth=2.5,
-            color="#94a3b8",
-            label="Einzahlungen"
-        )
-
-        ax.plot(
-            jahre,
-            kapitalwerte,
-            marker="o",
-            linewidth=2.5,
-            color="#38bdf8",
-            label="Kapitalwert"
-        )
-
-        ax.set_title("Kapitalentwicklung", color="white", fontsize=16, pad=15)
-        ax.set_xlabel("Jahre", color="white")
-        ax.set_ylabel("Euro", color="white")
-
-        ax.tick_params(axis="x", colors="white")
-        ax.tick_params(axis="y", colors="white")
-
-        for spine in ax.spines.values():
-            spine.set_color("#334155")
-
-        ax.grid(True, color="#334155", linestyle="--", linewidth=0.8, alpha=0.7)
-
-        legende = ax.legend(facecolor="#1f2937", edgecolor="#334155", fontsize=10)
-        for text in legende.get_texts():
-            text.set_color("white")
-
-        plt.tight_layout()
-
-        os.makedirs("static", exist_ok=True)
-        plt.savefig(
-            "static/kapitalentwicklung.png",
-            bbox_inches="tight",
-            facecolor=fig.get_facecolor()
-        )
-        plt.close()
+    if yearly_data and not os.path.exists("static/kapitalentwicklung.png"):
+        save_chart(yearly_data)
 
     return render_template(
         "CashTex_AI_main.html",
+        form_data=form_data,
         frei_verfuegbar_ergebnis=frei_verfuegbar,
         monthly_rate=monthly_rate,
         final_value=final_value,
         profit=profit,
         yearly_data=yearly_data,
         top_unternehmen=top_unternehmen,
-        form_data=form_data,
-        error_message=error_message
+        error_message=error_message,
+        etfs=ETFS
     )
 
-@app.route("/kapitalentwicklung")
+
+@app.get("/kapitalentwicklung")
 def kapitalentwicklung():
     yearly_data = session.get("yearly_data", [])
     return render_template("CashTex_Kapitalentwicklung.html", yearly_data=yearly_data)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

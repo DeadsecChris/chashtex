@@ -1,106 +1,280 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Kapitalentwicklung</title>
-<style>
-body{
-    font-family:Arial;
-    background:#0b1120;
-    color:white;
-    margin:0;
-}
+    <meta charset="UTF-8">
+    <title>CashTex - Berechnung</title>
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            background:#0b1120;
+            color:white;
+            margin:0;
+        }
 
-.container{
-    max-width:1000px;
-    margin:auto;
-    padding:30px;
-}
+        .container{
+            max-width:1100px;
+            margin:auto;
+            padding:30px 20px;
+        }
 
-.card{
-    background:#111827;
-    padding:20px;
-    border-radius:12px;
-    margin-bottom:20px;
-}
+        .card{
+            background:#111827;
+            padding:24px;
+            border-radius:14px;
+            margin-bottom:20px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.2);
+        }
 
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
-}
+        h1,h2,h3{
+            margin-top:0;
+        }
 
-th,td{
-    padding:10px;
-    border-bottom:1px solid #333;
-    text-align:right;
-}
+        .grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+            gap:16px;
+        }
 
-th{
-    background:#1f2937;
-}
+        label{
+            display:block;
+            margin-bottom:8px;
+            font-weight:bold;
+            color:#cbd5e1;
+        }
 
-td:first-child, th:first-child{
-    text-align:left;
-}
+        input, select{
+            width:100%;
+            padding:12px;
+            border-radius:10px;
+            border:1px solid #334155;
+            background:#0f172a;
+            color:white;
+            box-sizing:border-box;
+        }
 
-.chart-image{
-    width:100%;
-    max-width:900px;
-    display:block;
-    margin:20px auto;
-    border-radius:12px;
-    background:#111827;
-    border:1px solid #334155;
-}
+        .button-row{
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-top:20px;
+        }
 
-button{
-    padding:12px;
-    background:#38bdf8;
-    border:none;
-    border-radius:8px;
-    font-weight:bold;
-    cursor:pointer;
-}
-</style>
+        button, .link-button{
+            padding:12px 18px;
+            background:#38bdf8;
+            color:#0b1120;
+            border:none;
+            border-radius:10px;
+            font-weight:bold;
+            cursor:pointer;
+            text-decoration:none;
+            display:inline-block;
+        }
+
+        .secondary{
+            background:#1e293b;
+            color:white;
+            border:1px solid #334155;
+        }
+
+        .error{
+            background:#7f1d1d;
+            color:#fecaca;
+            padding:14px;
+            border-radius:10px;
+            margin-bottom:20px;
+            border:1px solid #b91c1c;
+        }
+
+        .result-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+            gap:16px;
+            margin-top:10px;
+        }
+
+        .result-box{
+            background:#0f172a;
+            border:1px solid #334155;
+            border-radius:12px;
+            padding:16px;
+        }
+
+        .result-title{
+            color:#94a3b8;
+            font-size:14px;
+            margin-bottom:8px;
+        }
+
+        .result-value{
+            font-size:24px;
+            font-weight:bold;
+        }
+
+        ul{
+            margin:0;
+            padding-left:20px;
+        }
+
+        li{
+            margin-bottom:8px;
+            color:#e2e8f0;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:16px;
+        }
+
+        th,td{
+            padding:12px;
+            border-bottom:1px solid #334155;
+            text-align:right;
+        }
+
+        th{
+            background:#1f2937;
+        }
+
+        td:first-child, th:first-child{
+            text-align:left;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="card">
+            <h1>CashTex Rechner</h1>
 
-<div class="container">
+            {% if error_message %}
+                <div class="error">{{ error_message }}</div>
+            {% endif %}
 
-<div class="card">
-    <h1>Kapitalentwicklung</h1>
+            <form method="POST" action="/berechnen">
+                <div class="grid">
+                    <div>
+                        <label for="net_salary">Nettoeinkommen pro Monat (€)</label>
+                        <input type="number" step="0.01" min="0" name="net_salary" id="net_salary" value="{{ form_data.net_salary }}" required>
+                    </div>
 
-    <img src="{{ url_for('static', filename='kapitalentwicklung.png') }}"
-         alt="Kapitalentwicklung"
-         class="chart-image">
+                    <div>
+                        <label for="monthly_expenses">Monatliche Ausgaben (€)</label>
+                        <input type="number" step="0.01" min="0" name="monthly_expenses" id="monthly_expenses" value="{{ form_data.monthly_expenses }}" required>
+                    </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Jahr</th>
-                <th>Einzahlungen</th>
-                <th>Kapitalwert</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in yearly_data %}
-            <tr>
-                <td>{{ row["year"] }}</td>
-                <td>{{ row["invested"] }} €</td>
-                <td>{{ row["capital"] }} €</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    <div>
+                        <label for="saving_level">Sparlevel</label>
+                        <select name="saving_level" id="saving_level">
+                            <option value="wenig" {% if form_data.saving_level == "wenig" %}selected{% endif %}>Wenig (10%)</option>
+                            <option value="mittel" {% if form_data.saving_level == "mittel" %}selected{% endif %}>Mittel (20%)</option>
+                            <option value="hoch" {% if form_data.saving_level == "hoch" %}selected{% endif %}>Hoch (30%)</option>
+                            <option value="sehr_hoch" {% if form_data.saving_level == "sehr_hoch" %}selected{% endif %}>Sehr hoch (50%)</option>
+                        </select>
+                    </div>
 
-    <br>
-    <a href="/berechnen">
-        <button type="button">Zurück zur Berechnung</button>
-    </a>
-</div>
+                    <div>
+                        <label for="etf_id">ETF</label>
+                        <select name="etf_id" id="etf_id">
+                            <option value="1" {% if form_data.etf_id == "1" %}selected{% endif %}>MSCI World</option>
+                            <option value="2" {% if form_data.etf_id == "2" %}selected{% endif %}>S&amp;P 500</option>
+                            <option value="3" {% if form_data.etf_id == "3" %}selected{% endif %}>Emerging Markets</option>
+                            <option value="4" {% if form_data.etf_id == "4" %}selected{% endif %}>Core DAX EUR</option>
+                            <option value="5" {% if form_data.etf_id == "5" %}selected{% endif %}>Global X Defense Tech</option>
+                            <option value="6" {% if form_data.etf_id == "6" %}selected{% endif %}>XTrackers AI &amp; Big Data</option>
+                        </select>
+                    </div>
 
-</div>
+                    <div>
+                        <label for="years">Anlagezeitraum (Jahre)</label>
+                        <input type="number" min="1" name="years" id="years" value="{{ form_data.years }}" required>
+                    </div>
 
+                    <div>
+                        <label for="initial_investment">Startkapital (€)</label>
+                        <input type="number" step="0.01" min="0" name="initial_investment" id="initial_investment" value="{{ form_data.initial_investment }}" required>
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <button type="submit">Berechnen</button>
+
+                    {% if yearly_data %}
+                        <a class="link-button secondary" href="/kapitalentwicklung">Zur Kapitalentwicklungs-Seite</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Ergebnisse</h2>
+            <div class="result-grid">
+                <div class="result-box">
+                    <div class="result-title">Frei verfügbar</div>
+                    <div class="result-value">
+                        {% if frei_verfuegbar_ergebnis %}{{ frei_verfuegbar_ergebnis }} €{% else %}-{% endif %}
+                    </div>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-title">Monatliche Sparrate</div>
+                    <div class="result-value">
+                        {% if monthly_rate %}{{ monthly_rate }} €{% else %}-{% endif %}
+                    </div>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-title">Endkapital</div>
+                    <div class="result-value">
+                        {% if final_value %}{{ final_value }} €{% else %}-{% endif %}
+                    </div>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-title">Gewinn</div>
+                    <div class="result-value">
+                        {% if profit %}{{ profit }} €{% else %}-{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Top 5 Unternehmen im ETF</h2>
+            {% if top_unternehmen %}
+                <ul>
+                    {% for unternehmen in top_unternehmen %}
+                        <li>{{ unternehmen }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Keine Unternehmensdaten vorhanden.</p>
+            {% endif %}
+        </div>
+
+        {% if yearly_data %}
+        <div class="card">
+            <h2>Jahreswerte</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Jahr</th>
+                        <th>Einzahlungen</th>
+                        <th>Kapitalwert</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in yearly_data %}
+                    <tr>
+                        <td>{{ row.year }}</td>
+                        <td>{{ row.invested }} €</td>
+                        <td>{{ row.capital }} €</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
 </body>
 </html>

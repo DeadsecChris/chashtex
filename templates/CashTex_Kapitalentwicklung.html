@@ -1,106 +1,121 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Kapitalentwicklung</title>
-<style>
-body{
-    font-family:Arial;
-    background:#0b1120;
-    color:white;
-    margin:0;
-}
+    <meta charset="UTF-8">
+    <title>CashTex - Kapitalentwicklung</title>
+    <style>
+        body{
+            font-family:Arial, sans-serif;
+            background:#0b1120;
+            color:white;
+            margin:0;
+        }
 
-.container{
-    max-width:1000px;
-    margin:auto;
-    padding:30px;
-}
+        .container{
+            max-width:1100px;
+            margin:auto;
+            padding:30px 20px;
+        }
 
-.card{
-    background:#111827;
-    padding:20px;
-    border-radius:12px;
-    margin-bottom:20px;
-}
+        .card{
+            background:#111827;
+            padding:24px;
+            border-radius:14px;
+            margin-bottom:20px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.2);
+        }
 
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
-}
+        h1{
+            margin-top:0;
+        }
 
-th,td{
-    padding:10px;
-    border-bottom:1px solid #333;
-    text-align:right;
-}
+        .chart-image{
+            width:100%;
+            max-width:950px;
+            display:block;
+            margin:20px auto;
+            border-radius:12px;
+            background:#111827;
+            border:1px solid #334155;
+        }
 
-th{
-    background:#1f2937;
-}
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
 
-td:first-child, th:first-child{
-    text-align:left;
-}
+        th,td{
+            padding:12px;
+            border-bottom:1px solid #334155;
+            text-align:right;
+        }
 
-.chart-image{
-    width:100%;
-    max-width:900px;
-    display:block;
-    margin:20px auto;
-    border-radius:12px;
-    background:#111827;
-    border:1px solid #334155;
-}
+        th{
+            background:#1f2937;
+        }
 
-button{
-    padding:12px;
-    background:#38bdf8;
-    border:none;
-    border-radius:8px;
-    font-weight:bold;
-    cursor:pointer;
-}
-</style>
+        td:first-child, th:first-child{
+            text-align:left;
+        }
+
+        .button-row{
+            margin-top:20px;
+        }
+
+        button{
+            padding:12px 18px;
+            background:#38bdf8;
+            color:#0b1120;
+            border:none;
+            border-radius:10px;
+            font-weight:bold;
+            cursor:pointer;
+        }
+
+        .hint{
+            color:#cbd5e1;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="card">
+            <h1>Kapitalentwicklung</h1>
 
-<div class="container">
+            {% if yearly_data %}
+                <img src="{{ url_for('static', filename='kapitalentwicklung.png') }}"
+                     alt="Kapitalentwicklung"
+                     class="chart-image">
 
-<div class="card">
-    <h1>Kapitalentwicklung</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Jahr</th>
+                            <th>Einzahlungen</th>
+                            <th>Kapitalwert</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in yearly_data %}
+                        <tr>
+                            <td>{{ row.year }}</td>
+                            <td>{{ row.invested }} €</td>
+                            <td>{{ row.capital }} €</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="hint">Es sind noch keine Daten vorhanden. Bitte zuerst eine Berechnung durchführen.</p>
+            {% endif %}
 
-    <img src="{{ url_for('static', filename='kapitalentwicklung.png') }}"
-         alt="Kapitalentwicklung"
-         class="chart-image">
-
-    <table>
-        <thead>
-            <tr>
-                <th>Jahr</th>
-                <th>Einzahlungen</th>
-                <th>Kapitalwert</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in yearly_data %}
-            <tr>
-                <td>{{ row["year"] }}</td>
-                <td>{{ row["invested"] }} €</td>
-                <td>{{ row["capital"] }} €</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <br>
-    <a href="/berechnen">
-        <button type="button">Zurück zur Berechnung</button>
-    </a>
-</div>
-
-</div>
-
+            <div class="button-row">
+                <a href="/berechnen">
+                    <button type="button">Zurück zu /berechnen</button>
+                </a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
