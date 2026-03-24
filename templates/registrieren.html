@@ -1,100 +1,90 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
 <meta charset="UTF-8">
 <title>Sparplan speichern</title>
 
 <style>
-
 body{
-font-family:Arial;
-background:#0b1120;
-color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-margin:0;
+    font-family:Arial, sans-serif;
+    background:#0b1120;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    margin:0;
 }
 
 .card{
-background:#111827;
-padding:30px;
-border-radius:12px;
-width:350px;
-box-shadow:0 0 20px rgba(0,0,0,0.5);
+    background:#111827;
+    padding:30px;
+    border-radius:12px;
+    width:380px;
+    box-shadow:0 0 20px rgba(0,0,0,0.5);
 }
 
 h2{
-margin-top:0;
-text-align:center;
+    margin-top:0;
+    text-align:center;
 }
 
 input{
-width:100%;
-padding:10px;
-margin-bottom:15px;
-border-radius:8px;
-border:none;
+    width:100%;
+    padding:10px;
+    margin-bottom:15px;
+    border-radius:8px;
+    border:none;
+    box-sizing:border-box;
 }
 
 button{
-width:100%;
-padding:12px;
-background:#38bdf8;
-border:none;
-border-radius:8px;
-font-weight:bold;
-cursor:pointer;
+    width:100%;
+    padding:12px;
+    background:#38bdf8;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
 }
 
 button:hover{
-background:#0ea5e9;
+    background:#0ea5e9;
 }
 
 .back-link{
-text-align:center;
-margin-top:15px;
+    text-align:center;
+    margin-top:15px;
 }
 
 .back-link a{
-color:#38bdf8;
-text-decoration:none;
+    color:#38bdf8;
+    text-decoration:none;
 }
-
 </style>
-
 </head>
-
 <body>
 
 <div class="card">
+    <h2>Sparplan speichern</h2>
 
-<h2>Sparplan speichern</h2>
+    <form method="POST" action="/registrieren">
+        <input type="text" name="Vorname" placeholder="Vorname" required>
+        <input type="text" name="Nachname" placeholder="Nachname" required>
 
-<form method="POST" action="/registrieren">
+        <input type="hidden" name="net_salary" value="{{ form_data.net_salary }}">
+        <input type="hidden" name="monthly_expenses" value="{{ form_data.monthly_expenses }}">
+        <input type="hidden" name="saving_level" value="{{ form_data.saving_level }}">
+        <input type="hidden" name="etf_id" value="{{ form_data.etf_id }}">
+        <input type="hidden" name="years" value="{{ form_data.years }}">
+        <input type="hidden" name="initial_investment" value="{{ form_data.initial_investment }}">
 
-<!-- 👤 Benutzerdaten -->
-<input type="text" name="Vorname" placeholder="Vorname" required>
-<input type="text" name="Nachname" placeholder="Nachname" required>
+        <button type="submit">Speichern</button>
+    </form>
 
-<!-- 🔒 Versteckte Sparplan-Daten -->
-<input type="hidden" name="net_salary" value="{{ form_data.net_salary }}">
-<input type="hidden" name="monthly_expenses" value="{{ form_data.monthly_expenses }}">
-<input type="hidden" name="saving_level" value="{{ form_data.saving_level }}">
-<input type="hidden" name="etf_id" value="{{ form_data.etf_id }}">
-<input type="hidden" name="years" value="{{ form_data.years }}">
-<input type="hidden" name="initial_investment" value="{{ form_data.initial_investment }}">
-
-<button type="submit">Speichern</button>
-
-</form>
-
-<div class="back-link">
-<a href="/">⬅ Zurück zum Rechner</a>
-</div>
-
+    <div class="back-link">
+        <a href="/berechnen">⬅ Zurück zum Rechner</a>
+    </div>
 </div>
 
 </body>
