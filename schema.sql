@@ -1,9 +1,14 @@
 PRAGMA foreign_keys = ON;
 
+DROP TABLE IF EXISTS Sparplaene;
+DROP TABLE IF EXISTS Benutzer;
 DROP TABLE IF EXISTS ETF_Unternehmen;
 DROP TABLE IF EXISTS Unternehmen;
 DROP TABLE IF EXISTS ETFs;
 
+-- =========================
+-- ETFs
+-- =========================
 CREATE TABLE ETFs (
     ETFID INTEGER PRIMARY KEY,
     WKN TEXT UNIQUE NOT NULL,
@@ -11,18 +16,53 @@ CREATE TABLE ETFs (
     RenditePA REAL
 );
 
+-- =========================
+-- Unternehmen
+-- =========================
 CREATE TABLE Unternehmen (
     WKN TEXT PRIMARY KEY,
     Bezeichnung TEXT NOT NULL
 );
 
+-- =========================
+-- Verbindung ETF ↔ Unternehmen
+-- =========================
 CREATE TABLE ETF_Unternehmen (
     ETFID INTEGER,
     WKN TEXT,
-    PRIMARY KEY (ETFID, WKN)
+    PRIMARY KEY (ETFID, WKN),
+    FOREIGN KEY (ETFID) REFERENCES ETFs(ETFID),
+    FOREIGN KEY (WKN) REFERENCES Unternehmen(WKN)
 );
 
--- ETFs
+-- =========================
+-- Benutzer (NEU)
+-- =========================
+CREATE TABLE Benutzer (
+    BenutzerID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Vorname TEXT NOT NULL,
+    Nachname TEXT NOT NULL
+);
+
+-- =========================
+-- Sparpläne (NEU)
+-- =========================
+CREATE TABLE Sparplaene (
+    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    BenutzerID INTEGER,
+    NetSalary REAL,
+    Expenses REAL,
+    SavingLevel TEXT,
+    ETFID INTEGER,
+    Years INTEGER,
+    InitialInvestment REAL,
+    FOREIGN KEY (BenutzerID) REFERENCES Benutzer(BenutzerID),
+    FOREIGN KEY (ETFID) REFERENCES ETFs(ETFID)
+);
+
+-- =========================
+-- ETFs Daten
+-- =========================
 INSERT INTO ETFs VALUES
 (1, 'A0RPWH', 'MSCI World', 8.0),
 (2, 'A0YEDG', 'S&P 500', 8.5),
@@ -31,7 +71,9 @@ INSERT INTO ETFs VALUES
 (5, 'A2QPVU', 'Defense Tech', 9.0),
 (6, 'A2N6LC', 'AI & Big Data', 10.0);
 
--- Unternehmen
+-- =========================
+-- Unternehmen Daten
+-- =========================
 INSERT INTO Unternehmen VALUES
 
 ('NVIDA', 'NVIDA'),
@@ -64,22 +106,25 @@ INSERT INTO Unternehmen VALUES
 ('NETFLIX', 'Netflix'),
 ('SALESFORCE', 'Salesforce');
 
---MSCI World
+-- =========================
+-- ETF ↔ Unternehmen Zuordnung
+-- =========================
+
+-- MSCI World
 INSERT INTO ETF_Unternehmen VALUES (1,'NVIDA');
 INSERT INTO ETF_Unternehmen VALUES (1,'APPLE');
 INSERT INTO ETF_Unternehmen VALUES (1,'MICROSOFT');
 INSERT INTO ETF_Unternehmen VALUES (1,'AMAZON');
 INSERT INTO ETF_Unternehmen VALUES (1,'ALPHABET');
 
---S&P 500
---MSCI World
+-- S&P 500
 INSERT INTO ETF_Unternehmen VALUES (2,'NVIDA');
 INSERT INTO ETF_Unternehmen VALUES (2,'APPLE');
 INSERT INTO ETF_Unternehmen VALUES (2,'MICROSOFT');
 INSERT INTO ETF_Unternehmen VALUES (2,'AMAZON');
 INSERT INTO ETF_Unternehmen VALUES (2,'ALPHABET');
 
--- Emerging Markets (KORRIGIERT ✅)
+-- Emerging Markets
 INSERT INTO ETF_Unternehmen VALUES (3, 'TSMC');
 INSERT INTO ETF_Unternehmen VALUES (3, 'TENCENT');
 INSERT INTO ETF_Unternehmen VALUES (3, 'SAMSUNG');
