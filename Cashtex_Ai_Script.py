@@ -192,7 +192,7 @@ def calculate_data(form_data):
         elif net_salary < 0 or monthly_expenses < 0 or start_capital < 0 or years < 0:
             error_message = "Bitte nur positive Werte eingeben."
 
-        elif years == 0:
+        elif years <= 0:
             error_message = "Die Anzahl der Jahre muss größer als 0 sein."
 
         elif monthly_expenses > net_salary:
@@ -289,6 +289,7 @@ def berechnen():
             try:
                 conn = get_db()
                 cur = conn.cursor()
+                
 
                 cur.execute("""
                     SELECT NetSalary, Expenses, SavingLevel, ETFID, Years, InitialInvestment
@@ -359,8 +360,13 @@ def berechnen():
 
 @app.get("/speichern")
 def speichern():
+    if "form_data" not in session:
+        session["error_message"] = "Bitte zuerst eine Berechnung durchführen."
+        return redirect(url_for("berechnen"))
+
     form_data = default_form_data()
     form_data.update(session.get("form_data", {}))
+
     return render_template("registrieren.html", form_data=form_data)
 
 
@@ -370,13 +376,31 @@ def registrieren():
         conn = get_db()
         cur = conn.cursor()
 
-        vorname = request.form["Vorname"].strip()
-        nachname = request.form["Nachname"].strip()
+        vorname = request.form.get("Vorname", "").strip()
+        nachname = request.form.get("Nachname", "").strip()
 
         if not vorname or not nachname:
             session["error_message"] = "Vorname und Nachname sind erforderlich."
             return redirect(url_for("berechnen"))
 
+        # 🔥 Sparplandaten sicher holen (Session = Hauptquelle)
+        session_data = session.get("form_data", {})
+
+        form_data = {
+            "net_salary": request.form.get("net_salary") or session_data.get("net_salary"),
+            "monthly_expenses": request.form.get("monthly_expenses") or session_data.get("monthly_expenses"),
+            "saving_level": request.form.get("saving_level") or session_data.get("saving_level"),
+            "etf_id": request.form.get("etf_id") or session_data.get("etf_id"),
+            "years": request.form.get("years") or session_data.get("years"),
+            "initial_investment": request.form.get("initial_investment") or session_data.get("initial_investment"),
+        }
+
+        # ❗ Sicherheitscheck: Sind alle Daten vorhanden?
+        if not all(form_data.values()):
+            session["error_message"] = "Fehlende Sparplandaten. Bitte zuerst berechnen."
+            return redirect(url_for("berechnen"))
+
+        # Benutzer prüfen / erstellen
         cur.execute("""
             SELECT BenutzerID
             FROM Benutzer
@@ -394,6 +418,7 @@ def registrieren():
             """, (vorname, nachname))
             benutzer_id = cur.lastrowid
 
+        # Prüfen ob Sparplan existiert
         cur.execute("""
             SELECT SparplanID
             FROM Sparplaene
@@ -403,32 +428,34 @@ def registrieren():
         existing_plan = cur.fetchone()
 
         if existing_plan:
+            # UPDATE
             cur.execute("""
                 UPDATE Sparplaene
                 SET NetSalary = ?, Expenses = ?, SavingLevel = ?, ETFID = ?, Years = ?, InitialInvestment = ?
                 WHERE BenutzerID = ?
             """, (
-                request.form["net_salary"],
-                request.form["monthly_expenses"],
-                request.form["saving_level"],
-                request.form["etf_id"],
-                request.form["years"],
-                request.form["initial_investment"],
+                form_data["net_salary"],
+                form_data["monthly_expenses"],
+                form_data["saving_level"],
+                form_data["etf_id"],
+                form_data["years"],
+                form_data["initial_investment"],
                 benutzer_id
             ))
         else:
+            # INSERT
             cur.execute("""
                 INSERT INTO Sparplaene
                 (BenutzerID, NetSalary, Expenses, SavingLevel, ETFID, Years, InitialInvestment)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """, (
                 benutzer_id,
-                request.form["net_salary"],
-                request.form["monthly_expenses"],
-                request.form["saving_level"],
-                request.form["etf_id"],
-                request.form["years"],
-                request.form["initial_investment"]
+                form_data["net_salary"],
+                form_data["monthly_expenses"],
+                form_data["saving_level"],
+                form_data["etf_id"],
+                form_data["years"],
+                form_data["initial_investment"]
             ))
 
         conn.commit()
@@ -437,10 +464,10 @@ def registrieren():
         session["success_message"] = "Sparplan erfolgreich gespeichert."
         return redirect(url_for("berechnen"))
 
-    except Exception:
-        session["error_message"] = "Fehler beim Speichern des Sparplans."
+    except Exception as e:
+        print("FEHLER:", e)
+        session["error_message"] = f"Fehler beim Speichern: {e}"
         return redirect(url_for("berechnen"))
-
 
 @app.get("/kapitalentwicklung")
 def kapitalentwicklung():
