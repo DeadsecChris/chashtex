@@ -69,8 +69,9 @@ button:hover{
     <h2>Sparplan speichern</h2>
 
     <form method="POST" action="/registrieren">
-        <input type="text" name="Vorname" placeholder="Vorname" required>
-        <input type="text" name="Nachname" placeholder="Nachname" required>
+        <input type="text" name="Benutzername" placeholder="Benutzername" required>
+        <input type="password" name="Passwort" placeholder="Passwort" required>
+        <input type="password" name="PasswortBestaetigen" placeholder="Passwort bestätigen" required>
 
         <input type="hidden" name="net_salary" value="{{ form_data.net_salary }}">
         <input type="hidden" name="monthly_expenses" value="{{ form_data.monthly_expenses }}">

@@ -40,22 +40,27 @@ CREATE TABLE ETF_Unternehmen (
 -- =========================
 CREATE TABLE Benutzer (
     BenutzerID INTEGER PRIMARY KEY AUTOINCREMENT,
-    Vorname TEXT NOT NULL,
-    Nachname TEXT NOT NULL
+    Vorname TEXT,
+    Nachname TEXT,
+    Benutzername TEXT UNIQUE NOT NULL,
+    PasswortHash TEXT NOT NULL
 );
 
 -- =========================
 -- Sparpläne (NEU)
 -- =========================
+-- =========================
+-- Sparpläne (FIXED)
+-- =========================
 CREATE TABLE Sparplaene (
-    ID INTEGER PRIMARY KEY AUTOINCREMENT,
-    BenutzerID INTEGER,
-    NetSalary REAL,
-    Expenses REAL,
-    SavingLevel TEXT,
-    ETFID INTEGER,
-    Years INTEGER,
-    InitialInvestment REAL,
+    SparplanID INTEGER PRIMARY KEY AUTOINCREMENT,
+    BenutzerID INTEGER NOT NULL,
+    NetSalary REAL NOT NULL,
+    Expenses REAL NOT NULL,
+    SavingLevel TEXT NOT NULL,
+    ETFID INTEGER NOT NULL,
+    Years INTEGER NOT NULL,
+    InitialInvestment REAL NOT NULL,
     FOREIGN KEY (BenutzerID) REFERENCES Benutzer(BenutzerID),
     FOREIGN KEY (ETFID) REFERENCES ETFs(ETFID)
 );

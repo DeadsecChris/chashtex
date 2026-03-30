@@ -1,9 +1,13 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <title>CashTex - Berechnung</title>
     <style>
+        html{
+            scroll-behavior: smooth;
+        }
+
         body{
             font-family: Arial, sans-serif;
             background:#0b1120;
@@ -135,28 +139,18 @@
     <div class="container">
 
         <div class="card">
-            <h2>Gespeicherten Sparplan laden</h2>
-            <form method="POST" action="/berechnen">
-                <input type="hidden" name="action" value="laden">
-
-                <div class="grid">
-                    <div>
-                        <label for="benutzer_id">Benutzer auswählen</label>
-                        <select name="benutzer_id" id="benutzer_id">
-                            <option value="">Bitte auswählen</option>
-                            {% for user in benutzer %}
-                                <option value="{{ user.BenutzerID }}">
-                                    {{ user.Vorname }} {{ user.Nachname }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
+            <h2>Benutzerkonto</h2>
+            {% if user_logged_in %}
+                <p>Angemeldet als <strong>{{ username }}</strong>.</p>
                 <div class="button-row">
-                    <button type="submit">Gespeicherten Plan laden</button>
+                    <a class="link-button" href="/logout">Ausloggen</a>
                 </div>
-            </form>
+            {% else %}
+                <div class="button-row">
+                    <a class="link-button" href="/login">Einloggen</a>
+                    <a class="link-button secondary" href="/speichern">Registrieren</a>
+                </div>
+            {% endif %}
         </div>
 
         <div class="card">
@@ -170,9 +164,7 @@
                 <div class="success">{{ success_message }}</div>
             {% endif %}
 
-            <form method="POST" action="/berechnen">
-                <input type="hidden" name="action" value="berechnen">
-
+            <form method="POST" action="/berechnen#ergebnisse">
                 <div class="grid">
                     <div>
                         <label for="net_salary">Nettoeinkommen pro Monat (€)</label>
@@ -218,18 +210,23 @@
                 </div>
 
                 <div class="button-row">
-                    <button type="submit">Berechnen</button>
+                    <button type="submit" name="action" value="berechnen">Berechnen</button>
 
                     {% if yearly_data %}
                         <a class="link-button secondary" href="/kapitalentwicklung">Kapitalentwicklung anzeigen</a>
                     {% endif %}
 
-                    <a class="link-button secondary" href="/speichern">Aktuelle Werte speichern</a>
+                    {% if user_logged_in %}
+                        <button type="submit" name="action" value="save_current">Aktuelle Werte speichern</button>
+                    {% else %}
+                        <a class="link-button secondary" href="/speichern">Aktuelle Werte speichern</a>
+                    {% endif %}
                 </div>
             </form>
         </div>
 
-        <div class="card">
+        <!-- ERGEBNISSE MIT SPRUNGMARKE -->
+        <div class="card" id="ergebnisse">
             <h2>Ergebnisse</h2>
             <div class="result-grid">
                 <div class="result-box">
