@@ -5,6 +5,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import sqlite3
 import os
+import webbrowser
+import threading
 
 app = Flask(__name__)
 app.secret_key = "cashtex_geheim"
@@ -691,4 +693,8 @@ def kapitalentwicklung():
 init_database()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    def open_browser():
+        webbrowser.open("http://127.0.0.1:5000")
+
+    threading.Timer(1, open_browser).start()
+    app.run(debug=False)
